@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 10px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .card.flipped img {
+            display: block;
+        }
+
+        .card.matched {
+            background-color: #2ecc71;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Memory Game</h1>
+        <button id="restartBtn">Restart</button>
+    </header>
+
+    <div id="gameBoard" class="game-board"></div>
+
+    <script>
+        const restartBtn = document.getElementById('restartBtn');
+        const gameBoard = document.getElementById('gameBoard');
+
+        const imagePaths = [
+            '1.jpg',
+            '2.jpg',
+            '3.jpg',
+            '4.jpg',
+            '5.jpg',
+            '6.jpg',
+            '7.jpg',
+            '8.jpg',
+    
+        ];
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedCards = [];
+        let totalPairs = imagePaths.length;
+
+        function generateCards() {
+            let images = [];
+            for (let path of imagePaths) {
+                images.push(path, path); 
+            }
+
+            images = shuffle(images);
+
+            cards = images.map(imagePath => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.image = imagePath;
+
+                const img = document.createElement('img');
+                img.src = imagePath;
+
+                card.appendChild(img);
+                card.addEventListener('click', flipCard);
+
+                gameBoard.appendChild(card);
+                return card;
+            });
+        }
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function flipCard(event) {
+            const clickedCard = event.target.closest('.card');
+
+            if (
+                clickedCard.classList.contains('flipped') ||
+                clickedCard.classList.contains('matched')
+            ) {
+                return;
+            }
+
+            clickedCard.classList.add('flipped');
+            flippedCards.push(clickedCard);
+
+            if (flippedCards.length === 2) {
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.image === card2.dataset.image) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCards.push(card1, card2);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                }, 1000);
+            }
+
+            flippedCards = [];
+            checkGameOver();
+        }
+
+        function checkGameOver() {
+            if (matchedCards.length === cards.length) {
+                setTimeout(() => {
+                    alert('You won! Restarting the game...');
+                    restartGame();
+                }, 500);
+            }
+        }
+
+        function restartGame() {
+            gameBoard.innerHTML = '';
+            flippedCards = [];
+            matchedCards = [];
+            generateCards();
+        }
+
+        restartBtn.addEventListener('click', restartGame);
+
+        generateCards();
+    </script>
+</body>
+</html>
